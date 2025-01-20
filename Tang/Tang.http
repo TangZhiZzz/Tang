@@ -1,0 +1,6 @@
+@Tang_HostAddress = http://localhost:5153
+
+GET {{Tang_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
