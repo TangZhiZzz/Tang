@@ -74,65 +74,17 @@ namespace Tang
             // 注册SqlSugar服务
             builder.Services.AddSqlSugar(builder.Configuration);
 
-            // 注册配置
-            builder.Services.Configure<JwtConfig>(builder.Configuration.GetSection("JwtConfig"));
-            var jwtConfig = builder.Configuration.GetSection("JwtConfig").Get<JwtConfig>();
-
-            // 注册配置
-            builder.Services.Configure<CacheConfig>(builder.Configuration.GetSection("CacheConfig"));
-            var cacheConfig = builder.Configuration.GetSection("CacheConfig").Get<CacheConfig>();
-
-            // 注册配置
-            builder.Services.Configure<LogConfig>(builder.Configuration.GetSection("LogConfig"));
-            var logConfig = builder.Configuration.GetSection("LogConfig").Get<LogConfig>();
-
             // 注册认证服务
-            builder.Services.AddServices();
-
-            // 添加认证
-            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(options =>
-                {
-                    options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuer = true,
-                        ValidateAudience = true,
-                        ValidateLifetime = true,
-                        ValidateIssuerSigningKey = true,
-                        ValidIssuer = jwtConfig!.Issuer,
-                        ValidAudience = jwtConfig.Audience,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtConfig.SecretKey))
-                    };
-                });
+            builder.Services.AddJwtAuthentication(builder.Configuration);
 
             // 注册缓存服务
-            if (cacheConfig!.Type.Equals("Redis", StringComparison.OrdinalIgnoreCase))
-            {
-                // 注册Redis
-                builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
-                    ConnectionMultiplexer.Connect(cacheConfig.RedisConnection));
-                builder.Services.AddSingleton<ICacheService, RedisCacheService>();
-            }
-            else
-            {
-                // 注册内存缓存
-                builder.Services.AddMemoryCache();
-                builder.Services.AddSingleton<ICacheService, MemoryCacheService>();
-            }
+            builder.Services.AddCacheService(builder.Configuration);
 
-            // 配置Serilog
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Debug()
-                .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-                .Enrich.FromLogContext()
-                .WriteTo.File(
-                    logConfig!.FilePath,
-                    rollingInterval: RollingInterval.Day,
-                    retainedFileCountLimit: logConfig.RetainedDays)
-                .WriteTo.Console()
-                .CreateLogger();
+            // 注册其他服务
+            builder.Services.AddServices();
 
-            builder.Host.UseSerilog();
+            // 配置日志服务
+            builder.Host.AddSerilogService(builder.Configuration);
 
             var app = builder.Build();
 
