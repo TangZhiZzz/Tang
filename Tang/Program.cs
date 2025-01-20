@@ -88,6 +88,9 @@ namespace Tang
 
             var app = builder.Build();
 
+            // 初始化App静态类
+            Tang.Common.App.Initialize(app.Services, builder.Configuration);
+
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
