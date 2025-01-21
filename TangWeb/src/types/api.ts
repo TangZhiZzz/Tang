@@ -5,6 +5,17 @@ export interface ApiResponse<T = any> {
   data: T
 }
 
+// 分页结果
+export interface PageResult<T> {
+  pageIndex: number
+  pageSize: number
+  total: number
+  totalPages: number
+  items: T[]
+  hasPrevious: boolean
+  hasNext: boolean
+}
+
 // 登录相关
 export interface LoginParams {
   userName: string

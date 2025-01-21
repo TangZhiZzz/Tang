@@ -16,15 +16,10 @@ const currentPermission = ref<Partial<SysPermission>>()
 // 加载权限树
 const loadPermissions = async () => {
   loading.value = true
-  try {
-    const data = await getPermissionTree({ keyword: keyword.value })
-    permissionList.value = data
-  } catch (error) {
-    console.error('获取权限列表失败:', error)
-    ElMessage.error('获取权限列表失败')
-  } finally {
-    loading.value = false
-  }
+  const res = await getPermissionTree({ keyword: keyword.value })
+  permissionList.value = res.data
+  loading.value = false
+
 }
 
 // 添加权限
@@ -82,37 +77,23 @@ onMounted(() => {
 <template>
   <div class="permission-container">
     <div class="search-bar">
-      <el-input
-        v-model="keyword"
-        placeholder="请输入权限名称"
-        clearable
-        @clear="loadPermissions"
-        style="width: 200px"
-      >
+      <el-input v-model="keyword" placeholder="请输入权限名称" clearable @clear="loadPermissions" style="width: 200px">
         <template #prefix>
-          <el-icon><Search /></el-icon>
+          <el-icon>
+            <Search />
+          </el-icon>
         </template>
       </el-input>
       <el-button type="primary" @click="loadPermissions">搜索</el-button>
       <el-button type="success" @click="handleAdd()">新增权限</el-button>
     </div>
 
-    <el-table
-      v-loading="loading"
-      :data="permissionList"
-      border
-      row-key="id"
-      :tree-props="{ children: 'children' }"
-      style="width: 100%"
-    >
+    <el-table v-loading="loading" :data="permissionList" border row-key="id" :tree-props="{ children: 'children' }"
+      style="width: 100%">
       <el-table-column prop="name" label="权限名称" min-width="200">
         <template #default="{ row }">
           <span>{{ row.name }}</span>
-          <el-button 
-            type="primary" 
-            link
-            @click.stop="handleAdd(row.id)"
-          >
+          <el-button type="primary" link @click.stop="handleAdd(row.id)">
             新增子权限
           </el-button>
         </template>
@@ -137,28 +118,15 @@ onMounted(() => {
       <el-table-column prop="sort" label="排序" width="80" />
       <el-table-column prop="status" label="状态" width="100">
         <template #default="{ row }">
-          <el-switch
-            v-model="row.status"
-            :active-value="1"
-            :inactive-value="0"
-            @change="handleStatusChange(row)"
-          />
+          <el-switch v-model="row.status" :active-value="1" :inactive-value="0" @change="handleStatusChange(row)" />
         </template>
       </el-table-column>
       <el-table-column label="操作" width="180" fixed="right">
         <template #default="{ row }">
-          <el-button 
-            type="primary" 
-            link
-            @click="handleEdit(row)"
-          >
+          <el-button type="primary" link @click="handleEdit(row)">
             编辑
           </el-button>
-          <el-button 
-            type="danger" 
-            link 
-            @click="handleDelete(row.id)"
-          >
+          <el-button type="danger" link @click="handleDelete(row.id)">
             删除
           </el-button>
         </template>
@@ -166,11 +134,7 @@ onMounted(() => {
     </el-table>
 
     <!-- 权限表单 -->
-    <permission-form
-      v-model:visible="formVisible"
-      :permission-data="currentPermission"
-      @success="handleSuccess"
-    />
+    <permission-form v-model:visible="formVisible" :permission-data="currentPermission" @success="handleSuccess" />
   </div>
 </template>
 
@@ -184,4 +148,4 @@ onMounted(() => {
   display: flex;
   gap: 10px;
 }
-</style> 
+</style>

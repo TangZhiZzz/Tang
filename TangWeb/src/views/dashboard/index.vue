@@ -19,10 +19,11 @@ const loadStatistics = async () => {
       getRoleList(),
       getPermissionTree()
     ])
+    console.log(users.data);  
     statistics.value = {
-      userCount: users.length,
-      roleCount: roles.length,
-      permissionCount: countPermissions(permissions)
+      userCount: users.data.length,
+      roleCount: roles.data.length,
+      permissionCount: countPermissions(permissions.data)
     }
   } catch (error) {
     console.error('加载统计数据失败:', error)

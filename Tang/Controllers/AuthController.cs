@@ -25,13 +25,13 @@ namespace Tang.Controllers
         /// <param name="model">登录信息</param>
         /// <returns>Token</returns>
         [HttpPost("login")]
-        public async Task<string> Login([FromBody] LoginModel model)
+        public async Task<LoginResult> Login([FromBody] LoginModel model)
         {
             var token = await _authService.LoginAsync(model.UserName, model.Password);
             if (token == null)
                 throw new ApiException("用户名或密码错误");
 
-            return token;
+            return new LoginResult() { Token = token };
         }
 
     }

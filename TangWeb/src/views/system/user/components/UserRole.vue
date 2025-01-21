@@ -22,8 +22,8 @@ const selectedRoles = ref<number[]>([])
 // 加载角色列表
 const loadRoles = async () => {
   try {
-    const data = await getRoleList()
-    roleList.value = data
+    const res = await getRoleList()
+    roleList.value = res.data
   } catch (error) {
     console.error('获取角色列表失败:', error)
   }
@@ -34,8 +34,9 @@ const loadUserRoles = async () => {
   if (!props.user?.id) return
   
   try {
-    const data = await getUserRoles(props.user.id)
-    selectedRoles.value = data.map((item) => item.id)
+    const res = await getUserRoles(props.user.id)
+    console.log(res,111);
+    selectedRoles.value = res.data.map((item) => item.id)
   } catch (error) {
     console.error('获取用户角色失败:', error)
   }

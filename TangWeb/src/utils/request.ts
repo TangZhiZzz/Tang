@@ -1,7 +1,6 @@
 import axios from "axios";
-import type { AxiosInstance, AxiosResponse } from "axios";
+import type { AxiosInstance } from "axios";
 import { ElMessage } from "element-plus";
-import type { ApiResponse } from "../types/api";
 
 // 创建 axios 实例
 const service: AxiosInstance = axios.create({
@@ -34,14 +33,12 @@ service.interceptors.request.use(
 
 // 响应拦截器
 service.interceptors.response.use(
-  (response: AxiosResponse<ApiResponse>) => {
-    console.log("Response:", response.data);
+  (response) => {
+    console.log("Response:", response);
 
     const res = response.data;
-    // 检查响应状态
     if (res.code === undefined) {
-      // 如果响应中没有 Code 字段，直接返回数据
-      return response.data;
+      return Promise.resolve(response.data);
     }
 
     if (res.code !== 200) {
@@ -52,8 +49,7 @@ service.interceptors.response.use(
       });
       return Promise.reject(new Error(res.message || "请求错误"));
     }
-
-    return res.data;
+    return Promise.resolve(res);
   },
   (error) => {
     console.error("Response Error:", {
@@ -71,7 +67,7 @@ service.interceptors.response.use(
     }
 
     ElMessage({
-      message: error.response?.data?.Msg || error.message || "网络错误",
+      message: error.response?.data?.message || error.message || "网络错误",
       type: "error",
       duration: 5 * 1000,
     });

@@ -29,8 +29,8 @@ const defaultProps = {
 // 加载权限树
 const loadPermissionTree = async () => {
   try {
-    const data = await getPermissionTree()
-    permissionTree.value = data
+    const res = await getPermissionTree()
+    permissionTree.value = res.data
   } catch (error) {
     console.error('获取权限树失败:', error)
   }
@@ -41,8 +41,8 @@ const loadRolePermissions = async () => {
   if (!props.role?.id) return
   
   try {
-    const data = await getRolePermissions(props.role.id)
-    checkedKeys.value = data.map((item) => item.id)
+    const res = await getRolePermissions(props.role.id)
+    checkedKeys.value = res.data.map((item) => item.id)
   } catch (error) {
     console.error('获取角色权限失败:', error)
   }

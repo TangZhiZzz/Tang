@@ -21,14 +21,10 @@ const currentPermissionRole = ref<SysRole>()
 // 加载角色列表
 const loadRoles = async () => {
   loading.value = true
-  try {
-    const data = await getRoleList({ keyword: keyword.value })
-    roleList.value = data
-  } catch (error) {
-    console.error('获取角色列表失败:', error)
-  } finally {
-    loading.value = false
-  }
+  const res = await getRoleList({ keyword: keyword.value })
+  roleList.value = res.data
+  loading.value = false
+
 }
 
 // 添加角色
@@ -76,27 +72,18 @@ onMounted(() => {
 <template>
   <div class="role-container">
     <div class="search-bar">
-      <el-input
-        v-model="keyword"
-        placeholder="请输入角色名称"
-        clearable
-        @clear="loadRoles"
-        style="width: 200px"
-      >
+      <el-input v-model="keyword" placeholder="请输入角色名称" clearable @clear="loadRoles" style="width: 200px">
         <template #prefix>
-          <el-icon><Search /></el-icon>
+          <el-icon>
+            <Search />
+          </el-icon>
         </template>
       </el-input>
       <el-button type="primary" @click="loadRoles">搜索</el-button>
       <el-button type="success" @click="handleAdd">新增角色</el-button>
     </div>
 
-    <el-table
-      v-loading="loading"
-      :data="roleList"
-      border
-      style="width: 100%"
-    >
+    <el-table v-loading="loading" :data="roleList" border style="width: 100%">
       <el-table-column prop="id" label="ID" width="80" />
       <el-table-column prop="roleName" label="角色名称" />
       <el-table-column prop="roleCode" label="角色编码" />
@@ -118,18 +105,10 @@ onMounted(() => {
           <el-button type="primary" link @click="handleEdit(row)">
             编辑
           </el-button>
-          <el-button 
-            type="success" 
-            link
-            @click="handleAssignPermission(row)"
-          >
+          <el-button type="success" link @click="handleAssignPermission(row)">
             分配权限
           </el-button>
-          <el-button 
-            type="danger" 
-            link 
-            @click="handleDelete(row.id)"
-          >
+          <el-button type="danger" link @click="handleDelete(row.id)">
             删除
           </el-button>
         </template>
@@ -137,18 +116,10 @@ onMounted(() => {
     </el-table>
 
     <!-- 角色表单 -->
-    <role-form
-      v-model:visible="formVisible"
-      :role-data="currentRole"
-      @success="handleSuccess"
-    />
+    <role-form v-model:visible="formVisible" :role-data="currentRole" @success="handleSuccess" />
 
     <!-- 角色权限分配 -->
-    <role-permission
-      v-model:visible="permissionVisible"
-      :role="currentPermissionRole"
-      @success="loadRoles"
-    />
+    <role-permission v-model:visible="permissionVisible" :role="currentPermissionRole" @success="loadRoles" />
   </div>
 </template>
 
@@ -162,4 +133,4 @@ onMounted(() => {
   display: flex;
   gap: 10px;
 }
-</style> 
+</style>

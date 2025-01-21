@@ -4,6 +4,7 @@ using Tang.Models;
 using Microsoft.AspNetCore.Authorization;
 using Tang.Services;
 using Tang.Exceptions;
+using Tang.Extensions;
 
 namespace Tang.Controllers
 {
@@ -21,7 +22,7 @@ namespace Tang.Controllers
             _db = db;
             _log = log;
         }
-
+        
         /// <summary>
         /// 获取用户列表
         /// </summary>
@@ -151,6 +152,23 @@ namespace Tang.Controllers
 
             await _db.Insertable(userRoles).ExecuteCommandAsync();
 
+        }
+
+        /// <summary>
+        /// 分页获取用户列表
+        /// </summary>
+        /// <param name="request">分页请求参数</param>
+        /// <param name="keyword">搜索关键词(用户名/昵称)</param>
+        /// <returns>分页用户列表</returns>
+        [HttpGet("page")]
+        public async Task<PageResult<SysUser>> GetPage([FromQuery] PageRequest request, [FromQuery] string? keyword)
+        {
+            var query = _db.Queryable<SysUser>()
+                .WhereIF(!string.IsNullOrEmpty(keyword),
+                    u => u.UserName.Contains(keyword) || u.NickName!.Contains(keyword))
+                .Where(u => !u.IsDeleted)
+                .OrderByDescending(u => u.CreateTime); // 按创建时间倒序
+            return query.ToPageResult<SysUser>(request);
         }
     }
 }
