@@ -19,7 +19,6 @@ const loadStatistics = async () => {
       getRoleList(),
       getPermissionTree()
     ])
-    
     statistics.value = {
       userCount: users.length,
       roleCount: roles.length,

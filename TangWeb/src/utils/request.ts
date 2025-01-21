@@ -39,21 +39,21 @@ service.interceptors.response.use(
 
     const res = response.data;
     // 检查响应状态
-    if (res.Code === undefined) {
+    if (res.code === undefined) {
       // 如果响应中没有 Code 字段，直接返回数据
       return response.data;
     }
 
-    if (res.Code !== 200) {
+    if (res.code !== 200) {
       ElMessage({
-        message: res.Msg || "请求错误",
+        message: res.message || "请求错误",
         type: "error",
         duration: 5 * 1000,
       });
-      return Promise.reject(new Error(res.Msg || "请求错误"));
+      return Promise.reject(new Error(res.message || "请求错误"));
     }
 
-    return res.Data;
+    return res.data;
   },
   (error) => {
     console.error("Response Error:", {

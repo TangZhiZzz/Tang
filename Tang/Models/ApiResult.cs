@@ -1,8 +1,9 @@
 namespace Tang.Models
 {
     /// <summary>
-    /// API统一响应模型
+    /// API统一返回结果
     /// </summary>
+    /// <typeparam name="T">数据类型</typeparam>
     public class ApiResult<T>
     {
         /// <summary>
@@ -13,7 +14,7 @@ namespace Tang.Models
         /// <summary>
         /// 消息
         /// </summary>
-        public string Msg { get; set; } = string.Empty;
+        public string Message { get; set; } = string.Empty;
 
         /// <summary>
         /// 数据
@@ -23,11 +24,26 @@ namespace Tang.Models
         /// <summary>
         /// 成功
         /// </summary>
-        public static ApiResult<T> Success(T? data = default) => new() { Code = 200, Msg = "success", Data = data };
+        public static ApiResult<T> Success(T? data = default, string message = "操作成功")
+        {
+            return new ApiResult<T>
+            {
+                Code = 200,
+                Message = message,
+                Data = data
+            };
+        }
 
         /// <summary>
         /// 失败
         /// </summary>
-        public static ApiResult<T> Error(string message) => new() { Code = 500, Msg = message };
+        public static ApiResult<T> Fail(string message = "操作失败", int code = 400)
+        {
+            return new ApiResult<T>
+            {
+                Code = code,
+                Message = message
+            };
+        }
     }
 } 

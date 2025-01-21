@@ -1,8 +1,8 @@
 // API 响应的通用格式
 export interface ApiResponse<T = any> {
-  Code: number
-  Msg: string
-  Data: T
+  code: number
+  message: string
+  data: T
 }
 
 // 登录相关

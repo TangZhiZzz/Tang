@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Tang.Exceptions;
 using Tang.Models;
 using Tang.Services;
 
@@ -24,13 +25,19 @@ namespace Tang.Controllers
         /// <param name="model">登录信息</param>
         /// <returns>Token</returns>
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginModel model)
+        public async Task<string> Login([FromBody] LoginModel model)
         {
             var token = await _authService.LoginAsync(model.UserName, model.Password);
             if (token == null)
-                return Error("用户名或密码错误");
+                throw new ApiException("用户名或密码错误");
 
-            return Success(new { token });
+            return token;
         }
+
     }
-} 
+    public class LoginResult
+    {
+        public string Token { get; set; } = string.Empty;
+
+    }
+}

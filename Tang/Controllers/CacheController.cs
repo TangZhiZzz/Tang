@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Tang.Exceptions;
 using Tang.Services;
 
 namespace Tang.Controllers
@@ -23,15 +24,18 @@ namespace Tang.Controllers
         /// <param name="key">缓存键</param>
         /// <returns>缓存值</returns>
         [HttpGet("{key}")]
-        public async Task<IActionResult> Get(string key)
+        public async Task Get(string key)
         {
             if (await _cache.ExistsAsync(key))
             {
                 var value = await _cache.GetAsync<object>(key);
-                return Success(value);
+
+            }
+            else
+            {
+                throw new ApiException("缓存不存在");
             }
 
-            return Error("缓存不存在");
         }
 
         /// <summary>
@@ -41,11 +45,10 @@ namespace Tang.Controllers
         /// <param name="value">缓存值</param>
         /// <param name="expiry">过期时间(分钟)</param>
         [HttpPost("{key}")]
-        public async Task<IActionResult> Set(string key, [FromBody] object value, [FromQuery] int? expiry = null)
+        public async Task Set(string key, [FromBody] object value, [FromQuery] int? expiry = null)
         {
             TimeSpan? expiryTimeSpan = expiry.HasValue ? TimeSpan.FromMinutes(expiry.Value) : null;
             await _cache.SetAsync(key, value, expiryTimeSpan);
-            return Success();
         }
 
         /// <summary>
@@ -53,15 +56,17 @@ namespace Tang.Controllers
         /// </summary>
         /// <param name="key">缓存键</param>
         [HttpDelete("{key}")]
-        public async Task<IActionResult> Remove(string key)
+        public async Task Remove(string key)
         {
             if (await _cache.ExistsAsync(key))
             {
                 await _cache.RemoveAsync(key);
-                return Success();
+            }
+            else
+            {
+                throw new ApiException("缓存不存在");
             }
 
-            return Error("缓存不存在");
         }
 
         /// <summary>
@@ -79,10 +84,9 @@ namespace Tang.Controllers
         /// 清空所有缓存
         /// </summary>
         [HttpDelete("clear")]
-        public async Task<IActionResult> Clear()
+        public async Task Clear()
         {
             await _cache.ClearAsync();
-            return Success();
         }
 
         /// <summary>
@@ -90,7 +94,7 @@ namespace Tang.Controllers
         /// </summary>
         /// <param name="keys">缓存键列表</param>
         [HttpPost("batch/get")]
-        public async Task<IActionResult> BatchGet([FromBody] List<string> keys)
+        public async Task<Dictionary<string, object?>> BatchGet([FromBody] List<string> keys)
         {
             var result = new Dictionary<string, object?>();
             foreach (var key in keys)
@@ -100,7 +104,7 @@ namespace Tang.Controllers
                     result[key] = await _cache.GetAsync<object>(key);
                 }
             }
-            return Success(result);
+            return result;
         }
 
         /// <summary>
@@ -108,7 +112,7 @@ namespace Tang.Controllers
         /// </summary>
         /// <param name="keys">缓存键列表</param>
         [HttpPost("batch/remove")]
-        public async Task<IActionResult> BatchRemove([FromBody] List<string> keys)
+        public async Task BatchRemove([FromBody] List<string> keys)
         {
             foreach (var key in keys)
             {
@@ -117,7 +121,6 @@ namespace Tang.Controllers
                     await _cache.RemoveAsync(key);
                 }
             }
-            return Success();
         }
     }
-} 
+}

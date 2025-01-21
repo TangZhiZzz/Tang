@@ -104,6 +104,9 @@ namespace Tang
             // 初始化数据库
             app.UseInitDatabase();
 
+            // 注册异常处理中间件（需要在最前面）
+            app.UseCustExceptionHandler();
+
             // 注册响应处理中间件
             app.UseResponseHandler();
 

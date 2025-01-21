@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using SqlSugar;
+using Tang.Exceptions;
 using Tang.Models;
 
 namespace Tang.Controllers
@@ -17,7 +18,7 @@ namespace Tang.Controllers
         /// 获取权限树
         /// </summary>
         [HttpGet("tree")]
-        public async Task<IActionResult> GetTree([FromQuery] string? keyword)
+        public async Task<List<SysPermission>> GetTree([FromQuery] string? keyword)
         {
             var permissions = await _db.Queryable<SysPermission>()
                 .WhereIF(!string.IsNullOrEmpty(keyword), 
@@ -27,86 +28,85 @@ namespace Tang.Controllers
                 .ToListAsync();
 
             // 构建树形结构
-            var tree = BuildTree(permissions);
-            return Success(tree);
+            return BuildTree(permissions);
         }
 
         /// <summary>
         /// 获取权限信息
         /// </summary>
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetInfo(int id)
+        public async Task<SysPermission> GetInfo(int id)
         {
             var permission = await _db.Queryable<SysPermission>()
                 .Where(p => p.Id == id && !p.IsDeleted)
                 .FirstAsync();
 
             if (permission == null)
-                return Error("权限不存在");
+            {
+                throw new ApiException("权限不存在");
+            }
+                 
 
-            return Success(permission);
+            return permission;
         }
 
         /// <summary>
         /// 添加权限
         /// </summary>
         [HttpPost]
-        public async Task<IActionResult> Add([FromBody] SysPermission permission)
+        public async Task Add([FromBody] SysPermission permission)
         {
             // 检查权限编码是否已存在
             if (await _db.Queryable<SysPermission>().AnyAsync(p => p.PermissionCode == permission.PermissionCode && !p.IsDeleted))
-                return Error("权限编码已存在");
+                throw new ApiException("权限编码已存在");
 
             var result = await _db.Insertable(permission).ExecuteCommandAsync();
-            return result > 0 ? Success() : Error("添加失败");
         }
 
         /// <summary>
         /// 修改权限
         /// </summary>
         [HttpPut]
-        public async Task<IActionResult> Update([FromBody] SysPermission permission)
+        public async Task Update([FromBody] SysPermission permission)
         {
             // 检查权限是否存在
             if (!await _db.Queryable<SysPermission>().AnyAsync(p => p.Id == permission.Id && !p.IsDeleted))
-                return Error("权限不存在");
+                throw new ApiException("权限不存在");
 
             // 检查权限编码是否已被其他权限使用
             if (await _db.Queryable<SysPermission>().AnyAsync(p => 
                 p.PermissionCode == permission.PermissionCode && p.Id != permission.Id && !p.IsDeleted))
-                return Error("权限编码已存在");
+                throw new ApiException("权限编码已存在");
 
             permission.UpdateTime = DateTime.Now;
             var result = await _db.Updateable(permission).ExecuteCommandAsync();
-            return result > 0 ? Success() : Error("修改失败");
         }
 
         /// <summary>
         /// 删除权限
         /// </summary>
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task Delete(int id)
         {
             var permission = await _db.Queryable<SysPermission>()
                 .Where(p => p.Id == id && !p.IsDeleted)
                 .FirstAsync();
 
             if (permission == null)
-                return Error("权限不存在");
+                throw new ApiException("权限不存在");
 
             // 检查是否有子权限
             if (await _db.Queryable<SysPermission>().AnyAsync(p => p.ParentId == id && !p.IsDeleted))
-                return Error("存在子权限，无法删除");
+                throw new ApiException("存在子权限，无法删除");
 
             // 检查是否有角色使用此权限
             if (await _db.Queryable<SysRolePermission>().AnyAsync(rp => rp.PermissionId == id))
-                return Error("权限已被角色使用，无法删除");
+                throw new ApiException("权限已被角色使用，无法删除");
 
             // 软删除
             permission.IsDeleted = true;
             permission.UpdateTime = DateTime.Now;
             var result = await _db.Updateable(permission).ExecuteCommandAsync();
-            return result > 0 ? Success() : Error("删除失败");
         }
 
         /// <summary>
